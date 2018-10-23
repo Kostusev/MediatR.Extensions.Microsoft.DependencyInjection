@@ -5,16 +5,19 @@
     <Copyright>Copyright Jimmy Bogard</Copyright>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>MediatR.Extensions.Microsoft.DependencyInjection</AssemblyName>
-    <PackageId>MediatR.Extensions.Microsoft.DependencyInjection</PackageId>
+    <PackageId>MediatR.Extensions.Microsoft.DependencyInjectionFixed</PackageId>
     <PackageTags>mediator;request;response;queries;commands;notifications</PackageTags>
     <PackageIconUrl>https://raw.githubusercontent.com/jbogard/MediatR/master/assets/logo/gradient_128x128.png</PackageIconUrl>
-    <PackageProjectUrl>https://github.com/jbogard/MediatR.Extensions.Microsoft.DependencyInjection</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Kostusev/MediatR.Extensions.Microsoft.DependencyInjection</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/jbogard/MediatR/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>git://github.com/jbogard/MediatR.Extensions.Microsoft.DependencyInjection</RepositoryUrl>
     <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
     <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
     <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>5.1.2</Version>
+    <AssemblyVersion>5.1.2.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
