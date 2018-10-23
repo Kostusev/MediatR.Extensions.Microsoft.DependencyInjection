@@ -49,6 +49,11 @@ namespace TestApp
 
     }
 
+    public class Pinged2 : Pinged
+    {
+
+    }
+
     public class PingedAsync : INotification
     {
 

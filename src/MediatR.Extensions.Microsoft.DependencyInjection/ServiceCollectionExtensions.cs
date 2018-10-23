@@ -77,7 +77,8 @@ namespace MediatR
 
         private static void AddMediatRClasses(IServiceCollection services, IEnumerable<Assembly> assembliesToScan)
         {
-            assembliesToScan = (assembliesToScan as Assembly[] ?? assembliesToScan).Distinct().ToArray();
+            IReadOnlyCollection<Assembly> localAssembliesToScan =
+                (assembliesToScan as Assembly[] ?? assembliesToScan).Distinct().ToArray();
 
             var openRequestInterfaces = new[]
             {
@@ -87,8 +88,8 @@ namespace MediatR
             {
                 typeof(INotificationHandler<>),
             };
-            AddInterfacesAsTransient(openRequestInterfaces, services, assembliesToScan, false);
-            AddInterfacesAsTransient(openNotificationHandlerInterfaces, services, assembliesToScan, true);
+            AddInterfacesAsTransient(openRequestInterfaces, services, localAssembliesToScan, false);
+            AddInterfacesAsTransient(openNotificationHandlerInterfaces, services, localAssembliesToScan, true);
 
             var multiOpenInterfaces = new[]
             {
@@ -100,9 +101,9 @@ namespace MediatR
             {
                 var concretions = new List<Type>();
 
-                foreach (var type in assembliesToScan.SelectMany(a => a.DefinedTypes))
+                foreach (var type in localAssembliesToScan.SelectMany(a => a.DefinedTypes))
                 {
-                    IEnumerable<Type> interfaceTypes = type.FindInterfacesThatClose(multiOpenInterface).ToArray();
+                    IReadOnlyCollection<Type> interfaceTypes = type.FindInterfacesThatClose(multiOpenInterface).ToArray();
                     if (!interfaceTypes.Any()) continue;
 
                     if (type.IsConcrete())
@@ -125,19 +126,24 @@ namespace MediatR
         /// <param name="openRequestInterfaces"></param>
         /// <param name="services"></param>
         /// <param name="assembliesToScan"></param>
-        /// <param name="addIfAlreadyExists"></param>
+        /// <param name="isNotifications"></param>
         private static void AddInterfacesAsTransient(Type[] openRequestInterfaces,
             IServiceCollection services,
-            IEnumerable<Assembly> assembliesToScan,
-            bool addIfAlreadyExists)
+            IReadOnlyCollection<Assembly> assembliesToScan,
+            bool isNotifications)
         {
             foreach (var openInterface in openRequestInterfaces)
             {
                 var concretions = new List<Type>();
-                var interfaces = new List<Type>();
+                var interfaces = new HashSet<Type>();
 
                 foreach (var type in assembliesToScan.SelectMany(a => a.DefinedTypes))
                 {
+                    if (isNotifications && typeof(INotification).IsAssignableFrom(type))
+                    {
+                        interfaces.Add(openInterface.MakeGenericType(type));
+                    }
+
                     IEnumerable<Type> interfaceTypes = type.FindInterfacesThatClose(openInterface).ToArray();
                     if (!interfaceTypes.Any()) continue;
 
@@ -148,7 +154,7 @@ namespace MediatR
 
                     foreach (Type interfaceType in interfaceTypes)
                     {
-                        interfaces.Fill(interfaceType);
+                        interfaces.Add(interfaceType);
                     }
                 }
 
@@ -158,13 +164,13 @@ namespace MediatR
                         .Where(t => t.CanBeCastTo(@interface))
                         .ToList();
 
-                    if (addIfAlreadyExists)
+                    if (isNotifications)
                     {
                         matches.ForEach(match => services.AddTransient(@interface, match));
                     }
                     else
                     {
-                        if (matches.Count() > 1)
+                        if (matches.Count > 1)
                         {
                             matches.RemoveAll(m => !IsMatchingWithInterface(m, @interface));
                         }
@@ -274,11 +280,7 @@ namespace MediatR
             return !type.GetTypeInfo().IsAbstract && !type.GetTypeInfo().IsInterface;
         }
 
-        private static void Fill<T>(this IList<T> list, T value)
-        {
-            if (list.Contains(value)) return;
-            list.Add(value);
-        }
+       
 
         private static void AddRequiredServices(IServiceCollection services)
         {
